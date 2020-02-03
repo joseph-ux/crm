@@ -8,6 +8,7 @@ $baseDir = dirname($vendorDir);
 return array(
     'wxapp\\' => array($vendorDir . '/thinkcmf/cmf-extend/src/wxapp'),
     'tree\\' => array($vendorDir . '/thinkcmf/cmf-extend/src/tree'),
+    'think\\worker\\' => array($vendorDir . '/topthink/think-worker/src'),
     'think\\helper\\' => array($vendorDir . '/topthink/think-helper/src'),
     'think\\composer\\' => array($vendorDir . '/topthink/think-installer/src'),
     'think\\captcha\\' => array($vendorDir . '/topthink/think-captcha/src'),
@@ -18,5 +19,7 @@ return array(
     'app\\install\\' => array($vendorDir . '/thinkcmf/cmf-install/src'),
     'app\\' => array($vendorDir . '/thinkcmf/cmf-app/src'),
     'api\\' => array($vendorDir . '/thinkcmf/cmf-api/src'),
+    'Workerman\\' => array($vendorDir . '/workerman/workerman'),
     'PHPMailer\\PHPMailer\\' => array($vendorDir . '/phpmailer/phpmailer/src'),
+    'GatewayWorker\\' => array($vendorDir . '/workerman/gateway-worker/src'),
 );

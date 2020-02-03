@@ -1,10 +1,811 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+<include file="public@header_vue"/>
+<script src="https://cdn.jsdelivr.net/npm/vue-ueditor-wrap@latest/lib/vue-ueditor-wrap.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="__STATIC__/UEditor/ueditor.config.js"></script>
+<script type="text/javascript" charset="utf-8" src="__STATIC__/UEditor/ueditor.all.min.js"></script>
 </head>
-<body>
+<style>
+    .el-pagination {
+        margin-top: 20px;
+    }
 
+
+    .avatar-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-uploader .el-upload:hover {
+        border-color: #409EFF;
+    }
+
+    .avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 178px;
+        height: 178px;
+        line-height: 178px;
+        text-align: center;
+    }
+
+    .avatar {
+        width: 178px;
+        height: 178px;
+        display: block;
+    }
+
+    .avatar-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-uploader .el-upload:hover {
+        border-color: #409EFF;
+    }
+
+    .photos {
+        width: 120px;
+        height: 120px;
+        border-radius: 6px;
+        overflow: hidden;
+        float: left;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        position: relative;
+    }
+
+    .photos-options {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 120px;
+        line-height: 120px;
+        width: 120px;
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.6s;
+    }
+
+    .photos:hover .photos-options {
+        opacity: 1;
+    }
+
+    .photos-options .el-button {
+        font-size: 24px;
+        color: white
+    }
+
+    .photos img {
+        width: 120px;
+        height: 120px;
+    }
+
+    .photos-uploader {
+        width: 120px;
+        height: 120px;
+        float: left;
+    }
+
+    .logo-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .logo-uploader .el-upload:hover {
+        border-color: #409EFF;
+    }
+
+    .demo-color-box {
+        position: relative;
+        border-radius: 4px;
+        padding: 20px;
+        width: 100px;
+        height: 100px;
+        box-sizing: border-box;
+        color: #fff;
+        font-size: 12px;
+    }
+
+    .logo-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 120px;
+        height: 120px;
+        line-height: 120px;
+        text-align: center;
+    }
+</style>
+<body>
+<div id="app" style="height: 800px;">
+    <el-tabs type="border-card">
+        <el-tab-pane label="会员卡列表" v-loading="onDataLoading">
+            <el-row>
+                <el-col :span="24">
+                    <el-form :inline="true" :model="form" size="mini">
+                        <el-form-item label="日期:">
+                            <el-date-picker v-model="form.duration" type="daterange" value-format="yyyy-MM-dd"
+                                            :picker-options="durationOptions" range-separator="至"
+                                            start-placeholder="开始日期" end-placeholder="结束日期" clearable></el-date-picker>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" @click="getData()">查询</el-button>
+                            <el-button type="danger" @click="clearForm()">清空</el-button>
+                            <el-button type="primary" @click="update(null)">新增会员卡</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-col>
+            </el-row>
+            <el-table :data="tableData" style="width: 100%">
+                <el-table-column prop="id" label="ID" width="80"></el-table-column>
+                <el-table-column prop="title" label="会员卡标题"></el-table-column>
+                <el-table-column v-if="{$role_id}!=3" prop="company_info.name" label="公司名称"></el-table-column>
+                <el-table-column prop="brand_name" label="品牌名称"></el-table-column>
+                <el-table-column prop="quantity" label="发行数量"></el-table-column>
+                <el-table-column prop="status" label="状态">
+                    <template slot-scope="scope">
+                        <el-switch
+                                v-model="scope.row.status"
+                                active-color="#13ce66"
+                                :active-value="1"
+                                :inactive-value="0"
+                                inactive-color="#ff4949">
+                        </el-switch>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="create_time" label="操作时间" min-width="120">
+                    <template slot-scope="scope">
+                        {{formatDate(scope.row.create_time)}}
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" fixed="right" width="180">
+                    <template slot-scope="scope">
+                        <el-button size="mini" type="text" @click="update(scope.row)">编辑</el-button>
+                        <el-button size="mini" type="text" @click="sync_member_card(scope.row.id)">同步到微信会员卡</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-pagination background layout="total,prev, pager, next" :total="totalNum" :page-size="10"
+                           :current-page.sync="currentPage" @current-change="getData"></el-pagination>
+        </el-tab-pane>
+        <el-dialog :title="sourceFrom.id == '' ? '新增会员卡' : '修改会员卡'" :visible.sync="dialogVisible" width="60%"
+                   v-loading.fullscreen="dialogLoading">
+            <el-form :model="sourceFrom" class="demo-form-inline" :rules="rules" ref="sourceFrom"
+                     label-width="200px">
+                <el-form-item v-if="{$role_id}!=3" label="选择公司" prop="company_id">
+                    <el-col :span="18">
+                        <el-select v-model="sourceFrom.company_id" placeholder="选择公司">
+                            <el-option
+                                    v-for="item in companyData"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="会员卡标题" prop="title">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.title" placeholder="会员卡标题"></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="背景色" prop="color">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.color" placeholder="请选择背景色" :disabled="true"></el-input>
+                        <el-tag
+                                v-for="item in colors"
+                                :key="item.name"
+                                :hit="false"
+                                :color="item.value"
+                                style="margin: 0 5px;"
+                                @click="select_color(item)"
+                                effect="dark">
+                            {{ item.name }}
+                        </el-tag>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="Code展示类型" prop="code_type">
+                    <el-col :span="18">
+                        <el-select v-model="sourceFrom.code_type" placeholder="选择Code展示类型">
+                            <el-option
+                                    v-for="item in code_type"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="会员卡背景图片" prop="background_pic_url">
+                    <el-col :span="18">
+                        <el-upload
+                                class="avatar-uploader"
+                                action="{:url('api/crm/upload')}"
+                                :show-file-list="false"
+                                :on-success="handleAvatarSuccess"
+                                :before-upload="beforeAvatarUpload">
+                            <img v-if="sourceFrom.background_pic_url" :src="sourceFrom.background_pic_url"
+                                 class="avatar"/>
+                            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                        </el-upload>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="logo图片" prop="logo_url">
+                    <el-col :span="18">
+                        <el-upload
+                                class="avatar-uploader"
+                                action="{:url('api/crm/upload')}"
+                                :show-file-list="false"
+                                :on-success="handleLogoSuccess"
+                                :before-upload="beforeAvatarUpload">
+                            <img v-if="sourceFrom.logo_url" :src="sourceFrom.logo_url"
+                                 class="avatar"/>
+                            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                        </el-upload>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="商户名字" prop="brand_name">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.brand_name" placeholder="商户名字"></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="特权说明" prop="prerogative">
+                    <el-col :span="18">
+                        <el-input
+                                type="textarea"
+                                placeholder="请输入特权说明"
+                                v-model="sourceFrom.prerogative"
+                                maxlength="1024"
+                                show-word-limit>
+                        </el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="自动激活" prop="auto_activate">
+                    <el-col :span="18">
+                        <el-switch
+                                v-model="sourceFrom.auto_activate"
+                                active-color="#13ce66"
+                                inactive-color="#ff4949"
+                                :active-value="1"
+                                :inactive-value="0">
+                        </el-switch>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="是否支持一键开卡" prop="wx_activate">
+                    <el-col :span="18">
+                        <el-switch
+                                v-model="sourceFrom.wx_activate"
+                                active-color="#13ce66"
+                                inactive-color="#ff4949"
+                                :active-value="1"
+                                :inactive-value="0">
+                        </el-switch>
+                    </el-col>
+                </el-form-item>
+                <el-form-item v-if="sourceFrom.wx_activate == false" label="激活地址" prop="activate_url">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.activate_url" placeholder="会员卡激活地址"></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="是否显示积分" prop="supply_bonus">
+                    <el-col :span="18">
+                        <el-switch
+                                v-model="sourceFrom.supply_bonus"
+                                active-color="#13ce66"
+                                inactive-color="#ff4949"
+                                :active-value="1"
+                                :inactive-value="0">
+                        </el-switch>
+                    </el-col>
+                </el-form-item>
+                <el-form-item v-if="sourceFrom.supply_bonus == true" label="积分详细" prop="bonus_url">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.bonus_url" placeholder="积分详细地址"></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="是否显示余额" prop="supply_balance">
+                    <el-col :span="18">
+                        <el-switch
+                                v-model="sourceFrom.supply_balance"
+                                active-color="#13ce66"
+                                inactive-color="#ff4949"
+                                :active-value="1"
+                                :inactive-value="0">
+                        </el-switch>
+                    </el-col>
+                </el-form-item>
+                <el-form-item v-if="sourceFrom.supply_balance == true" label="余额详细" prop="balance_url">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.balance_url" placeholder="余额详细地址"></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="使用日期" prop="date_info_type">
+                    <el-col :span="18">
+                        <el-select v-model="sourceFrom.date_info_type" placeholder="选择使用日期">
+                            <el-option
+                                    v-for="item in date_type"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </el-col>
+                </el-form-item>
+                <el-form-item v-if="sourceFrom.date_info_type == 'DATE_TYPE_FIX_TIME_RANGE'" label="有效期"
+                              prop="activity_time">
+                    <el-col :span="18">
+                        <el-date-picker v-model="sourceFrom.activity_time" type="daterange" value-format="yyyy-MM-dd"
+                                        :picker-options="durationOptions" range-separator="至"
+                                        start-placeholder="开始日期" end-placeholder="结束日期" clearable></el-date-picker>
+                    </el-col>
+                </el-form-item>
+                <el-form-item v-if="sourceFrom.date_info_type == 'DATE_TYPE_FIX_TERM'" label="多少天后生效"
+                              prop="fixed_begin_term">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.fixed_begin_term" type="number" placeholder="多少天后生效"></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item v-if="sourceFrom.date_info_type == 'DATE_TYPE_FIX_TERM'" label="多少内生效"
+                              prop="fixed_term">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.fixed_term" type="number" placeholder="多少内生效"></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="发行数量" prop="quantity">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.quantity" type="number" placeholder="发行数量"></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="客服电话" prop="service_phone">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.service_phone" placeholder="客服电话"></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="使用提醒" prop="notice">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.notice" placeholder="会员卡使用提醒" maxlength="16"
+                                  show-word-limit></el-input>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="使用说明" prop="description">
+                    <el-col :span="18">
+                        <el-input v-model="sourceFrom.description" placeholder="会员卡使用说明" type="textarea"
+                                  maxlength="1024"
+                                  show-word-limit></el-input>
+                    </el-col>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+            <el-button v-if="sourceFrom.id === ''" type="primary" @click="submit('sourceFrom')">新增</el-button>
+            <el-button v-else type="primary" @click="submit('sourceFrom')">修改</el-button>
+        </span>
+        </el-dialog>
+
+    </el-tabs>
+</div>
 </body>
-</html>
+<script>
+    Vue.component('vue-ueditor-wrap', VueUeditorWrap)
+    var app = new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                tableData: [],
+                companyData: [],
+                goodsData: [],
+                goodsNum: 0,
+                currentGoodsPage: 1,
+                dialogGoodsVisible: false,
+                form: {
+                    name: '',
+                },
+                code_type: [
+                    {id: 0, name: '文本', value: 'CODE_TYPE_TEX'},
+                    {id: 1, name: '一维码', value: 'CODE_TYPE_BARCODE'},
+                    {id: 2, name: '二维码', value: 'CODE_TYPE_QRCODE'},
+                    {id: 3, name: '仅显示二维码', value: 'CODE_TYPE_ONLY_QRCODE'},
+                    {id: 4, name: '仅显示一维码', value: 'CODE_TYPE_ONLY_BARCODE'},
+                    {id: 5, name: '不显示任何码型', value: 'CODE_TYPE_NONE'},
+                ],
+                date_type: [
+                    {id: 0, 'name': '永久有效', value: 'DATE_TYPE_PERMANENT'},
+                    {id: 1, 'name': '有效日期', value: 'DATE_TYPE_FIX_TIME_RANGE'},
+                    {id: 2, 'name': '领取后多少天内有效', value: 'DATE_TYPE_FIX_TERM'},
+                ],
+                colors: [
+                    {
+                        "name": "Color010",
+                        "value": "#63b359"
+                    },
+                    {
+                        "name": "Color020",
+                        "value": "#2c9f67"
+                    },
+                    {
+                        "name": "Color030",
+                        "value": "#509fc9"
+                    },
+                    {
+                        "name": "Color040",
+                        "value": "#5885cf"
+                    },
+                    {
+                        "name": "Color050",
+                        "value": "#9062c0"
+                    },
+                    {
+                        "name": "Color060",
+                        "value": "#d09a45"
+                    },
+                    {
+                        "name": "Color070",
+                        "value": "#e4b138"
+                    },
+                    {
+                        "name": "Color080",
+                        "value": "#ee903c"
+                    },
+                    {
+                        "name": "Color081",
+                        "value": "#f08500"
+                    },
+                    {
+                        "name": "Color082",
+                        "value": "#a9d92d"
+                    },
+                    {
+                        "name": "Color090",
+                        "value": "#dd6549"
+                    },
+                    {
+                        "name": "Color100",
+                        "value": "#cc463d"
+                    },
+                    {
+                        "name": "Color101",
+                        "value": "#cf3e36"
+                    },
+                    {
+                        "name": "Color102",
+                        "value": "#5E6671"
+                    },
+                    {
+                        "name": "Color103",
+                        "value": "#026842"
+                    }
+                ],
+                totalNum: 0,
+                currentPage: 1,
+                dialogLoading: false,
+                onDataLoading: false,
+                durationOptions: {
+                    shortcuts: [{
+                        text: '一周',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            end.setTime(end.getTime() + 3600 * 1000 * 24 * 7);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '一个月',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            end.setTime(end.getTime() + 3600 * 1000 * 24 * 30);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '三个月',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            end.setTime(end.getTime() + 3600 * 1000 * 24 * 90);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }]
+                },
+                sourceFrom: {
+                    id: '',
+                    name: '',
+                    money: '',
+                    activity_time: '',
+                    sign_time: '',
+                    give_points: '',
+                    imgs: [],
+                },
+                dialogVisible: false,
+                coupon_type_list: [
+                    {id: 0, name: '折扣券'},
+                    {id: 1, name: '满减券'},
+                    {id: 2, name: '兑换券'}
+                ],
+                type_list: [
+                    {id: 0, name: '普通优惠券'},
+                    {id: 1, name: '直播优惠券'},
+                ],
+                rules: {
+                    title: [{required: true, message: '请输入会员卡标题', trigger: 'blur'}],
+                    company_id: [{required: true, message: '请选择公司', trigger: 'blur'}],
+                    color: [{required: true, message: '请选择卡券背景颜色', trigger: 'blur'}],
+                    code_type: [{required: true, message: '请选择展示code类型', trigger: 'blur'}],
+                    background_pic_url: [{required: true, message: '请上传会员卡背景图片', trigger: 'blur'}],
+                    logo_url: [{required: true, message: '请上传logo图片', trigger: 'blur'}],
+                    brand_name: [{required: true, message: '请输入商户名称', trigger: 'blur'}],
+                    prerogative: [{required: true, message: '请输入特权说明', trigger: 'blur'}],
+                    bonus_url: [{required: true, message: '请输入积分地址', trigger: 'blur'}],
+                    activate_url: [{required: true, message: '请输入激活地址', trigger: 'blur'}],
+                    balance_url: [{required: true, message: '请输入余额详细地址', trigger: 'blur'}],
+                    date_info_type: [{required: true, message: '请选择使用日期类型', trigger: 'blur'}],
+                    activity_time: [{required: true, message: '请选择有效日期', trigger: 'blur'}],
+                    fixed_begin_term: [{required: true, message: '请输入正确的天数', trigger: 'blur'}],
+                    quantity: [{required: true, message: '请输入发行数量', trigger: 'blur'}],
+                    notice: [{required: true, message: '请输入使用提醒', trigger: 'blur'}],
+                    description: [{required: true, message: '请输入使用说明', trigger: 'blur'}],
+                    fixed_term: [{required: true, message: '请输入正确的天数', trigger: 'blur'}],
+                },
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+            }
+        },
+        created() {
+            this.getCompanyData();
+            this.getData();
+        },
+        methods: {
+            clearForm() {
+                this.form = {
+                    name: '',
+                }
+            },
+            select_color(name) {
+                this.sourceFrom.color = name.name;
+            },
+            sync_member_card(id) {
+                let _this = this;
+                this.$confirm('确认信息同步到微信会员卡?', '提示', {
+                    confirmButtonText: '同步',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    let params = {id: id};
+                    axios.get("{:url('admin/member_card/sync_member_card')}", {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        params: params
+                    }).then(function (response) {
+                        _this.onDataLoading = false;
+                        if (response.data.code === 1) {
+                            _this.$message({
+                                type: 'success',
+                                message: '同步成功'
+                            });
+                        } else {
+                            _this.$message({
+                                message: response.data.msg,
+                                type: 'warning'
+                            });
+                        }
+                    }).catch(function (error) {
+                        _this.onDataLoading = false;
+                        _this.$message.error(error.toString())
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消同步'
+                    });
+                });
+            },
+            getData(page = 1) {
+                let _this = this;
+                let params = {page: page};
+                this.onDataLoading = true;
+                if (this.form.duration !== '') {
+                    params.duration = this.form.duration;
+                }
+                axios.get("{:url('admin/member_card/index')}", {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    params: params
+                }).then(function (response) {
+                    console.log(response.data.data);
+                    _this.onDataLoading = false;
+                    if (response.data.code === 1) {
+                        _this.tableData = response.data.data.data;
+                        _this.totalNum = response.data.data.total;
+                        console.log(_this.totalNum)
+                    } else {
+                        _this.$message({
+                            message: response.data.msg,
+                            type: 'warning'
+                        });
+                    }
+                }).catch(function (error) {
+                    _this.onDataLoading = false;
+                    _this.$message.error(error.toString())
+                })
+            },
+            getCompanyData() {
+                let _this = this;
+                axios.get("{:url('admin/company/get_company_list')}", {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                }).then(function (response) {
+                    _this.onDataLoading = false;
+                    if (response.data.code === 1) {
+                        _this.companyData = response.data.data;
+                    } else {
+                        _this.$message({
+                            message: response.data.msg,
+                            type: 'warning'
+                        });
+                    }
+                }).catch(function (error) {
+                    _this.onDataLoading = false;
+                    _this.$message.error(error.toString())
+                })
+            },
+            handleAvatarSuccess(res, file) {
+                this.sourceFrom.background_pic_url = res.url;
+            },
+            handleLogoSuccess(res, file) {
+                this.sourceFrom.logo_url = res.url;
+            },
+            handleRemove(file, fileList) {
+                let index = this.sourceFrom.imgs.indexOf(file);
+                this.sourceFrom.imgs.splice(index, 1);
+            },
+            handleintroimgSuccess(res, file) {
+                if (res.code === 1) {
+                    this.sourceFrom.imgs.push(res.url);
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg' || 'image/png';
+
+                const isLt2M = file.size / 1024 / 1024 < 10;
+
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG 格式或者PNG格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            },
+            change_status(field, value, id) {
+                let _this = this;
+                this.dialogLoading = true;
+                let params = {field: field, value: value, id: id};
+                axios.post("{:url('admin/activity/change_status')}", params, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                }).then(function (response) {
+                    _this.dialogLoading = false;
+                    if (response.data.code === 1) {
+                        _this.$message.success('修改完成');
+                        _this.getData(_this.currentPage);
+                    } else {
+                        _this.$message.warning(response.data.msg);
+                    }
+                })
+            },
+            update(data) {
+                let _this = this;
+                if (data) {
+                    _this.sourceFrom = JSON.parse(JSON.stringify(data));
+                } else {
+                    _this.sourceFrom = {
+                        id: '',
+                        title: '',
+                        company_id: '',
+                        activity_time: '',
+                        notice: '',
+                        description: '',
+                        color: '',
+                        background_pic_url: '',
+                        quantity: '',
+                        date_info_type: '',
+                        logo_url: '',
+                        fixed_begin_term: '',
+                        balance_url: '',
+                        activate_url: '',
+                        bonus_url: '',
+                        brand_name: '',
+                        auto_activate: true,
+                        wx_activate: true,
+                        supply_bonus: false,
+                        supply_balance: false,
+                        fixed_term: '',
+                    }
+                }
+                _this.dialogVisible = true;
+                _this.dialogLoading = false;
+            },
+            submit(form) {
+                let _this = this;
+                _this.$refs[form].validate((valid) => {
+                    if (valid) {
+                        axios.post("{:url('admin/member_card/update')}", this.sourceFrom, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            }
+                        }).then(function (response) {
+                            _this.dialogLoading = false;
+                            if (response.data.code === 1) {
+                                if (_this.sourceFrom.id === '') {
+                                    _this.$message.success('新增完成');
+                                } else {
+                                    _this.$message.success('修改成功');
+                                }
+                                _this.getData();
+                                _this.dialogVisible = false;
+                            } else {
+                                _this.$message.warning(response.data.msg);
+                            }
+                        }).catch(function (error) {
+                            _this.dialogLoading = false;
+                            _this.$message.error(error.toString())
+                        })
+                    } else {
+                        _this.dialogLoading = false;
+                        return false;
+                    }
+                });
+            },
+            delete_activity(id) {
+                let _this = this;
+                axios.post("{:url('admin/activity/delete')}", {id: id}, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                }).then(function (response) {
+                    _this.dialogLoading = false;
+                    if (response.data.code === 1) {
+                        if (_this.sourceFrom.id === '') {
+                            _this.$message.success('新增完成');
+                        } else {
+                            _this.$message.success('修改成功');
+                        }
+                        _this.getData(_this.currentPage);
+                        _this.dialogVisible = false;
+                    } else {
+                        _this.$message.warning(response.data.msg);
+                    }
+                }).catch(function (error) {
+                    _this.dialogLoading = false;
+                    _this.$message.error(error.toString())
+                })
+            },
+            formatDate(timestamp) {
+                if (timestamp) {
+                    let date = new Date(timestamp * 1000);
+                    return date.getFullYear() + '-' + this.prefix(date.getMonth() + 1) + '-' + this.prefix(date.getDate()) + ' ' + this.prefix(date.getHours()) + ':' + this.prefix(date.getMinutes()) + ':' + this.prefix(date.getSeconds());
+                } else {
+                    return '';
+                }
+            },
+            prefix(num) {
+                if (num < 10) {
+                    return '0' + num;
+                }
+                return num;
+            }
+        }
+    });
+</script>

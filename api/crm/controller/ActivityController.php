@@ -186,8 +186,20 @@ class ActivityController extends RestBaseController
             ->order('create_time desc')
             ->paginate($num, false, ['page' => $page])
             ->each(function ($item) {
-                $item['activity_info']['begin_time'] = date('Y年m月d日', $item['activity_info']['begin_time']);
-                $item['activity_info']['end_time'] = date('Y年m月d日', $item['activity_info']['end_time']);
+                $today = time();
+                if ($today < $item['activity_info']['begin_time']) {
+                    $item['activity_info']['status'] = '还未开始';
+                } else if ($today > $item['activity_info']['end_time']) {
+                    $item['activity_info']['status'] = '已结束';
+                } else {
+                    $item['activity_info']['status'] = '进行中';
+                }
+                if ($item['activity_info']) {
+                    $item['activity_info']['cover_img'] = $this->request->domain() . $item['activity_info']['cover_img'];
+                    $item['activity_info']['begin_time'] = date('Y年m月d日', $item['activity_info']['begin_time']);
+                    $item['activity_info']['end_time'] = date('Y年m月d日', $item['activity_info']['end_time']);
+                }
+
                 return $item;
             });
         $this->success('我参与的活动', $list);

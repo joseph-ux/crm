@@ -90,11 +90,13 @@ Route::group('wechat', function () {
     Route::post('add_cart', 'crm/Goods/add_cart');
     Route::get('get_user_cart', 'crm/Goods/get_user_cart');
     Route::post('activity_sign', 'crm/Activity/activity_sign');//get_my_activity
-    //新增地址 set_user_default_address get_user_address
+    //新增地址 set_user_default_address get_user_address get_my_activity
     Route::post('add_user_address', 'crm/WechatUser/add_user_address');
     Route::post('set_user_default_address', 'crm/WechatUser/set_user_default_address');
-    Route::post('delete_user_address','crm/WechatUser/delete_user_address');
-    Route::post('get_user_address','crm/WechatUser/get_user_address');
+    Route::post('delete_user_address', 'crm/WechatUser/delete_user_address');
+    Route::post('get_user_address_list', 'crm/WechatUser/get_user_address');
+    Route::post('edit_user_address', 'crm/WechatUser/edit_user_address');
+    Route::get('get_user_address_detail', 'crm/WechatUser/get_user_address_detail');
 });
 //pay_order
 //活动入口

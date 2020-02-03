@@ -13,5 +13,5 @@ class ActivitySignModel extends Model
         return $this->belongsTo('ActivityModel', 'activity_id');
     }
 
-
+    
 }

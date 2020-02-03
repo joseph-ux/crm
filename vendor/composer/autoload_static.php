@@ -11,6 +11,7 @@ class ComposerStaticInit5bfecc6fb5e853e2f790c7db297fb8ee
         '1cfd2761b63b0a29ed23657ea394cb2d' => __DIR__ . '/..' . '/topthink/think-captcha/src/helper.php',
         '22ae91e0a0181f0ca9a02b9dde87e558' => __DIR__ . '/..' . '/thinkcmf/cmf/src/common.php',
         '9b552a3cc426e3287cc811caefa3cf53' => __DIR__ . '/..' . '/topthink/think-helper/src/helper.php',
+        'ffc1d7141d4fcbaeb47a6929f0811ed1' => __DIR__ . '/..' . '/topthink/think-worker/src/command.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -21,6 +22,7 @@ class ComposerStaticInit5bfecc6fb5e853e2f790c7db297fb8ee
         't' => 
         array (
             'tree\\' => 5,
+            'think\\worker\\' => 13,
             'think\\helper\\' => 13,
             'think\\composer\\' => 15,
             'think\\captcha\\' => 14,
@@ -44,9 +46,17 @@ class ComposerStaticInit5bfecc6fb5e853e2f790c7db297fb8ee
             'app\\' => 4,
             'api\\' => 4,
         ),
+        'W' => 
+        array (
+            'Workerman\\' => 10,
+        ),
         'P' => 
         array (
             'PHPMailer\\PHPMailer\\' => 20,
+        ),
+        'G' => 
+        array (
+            'GatewayWorker\\' => 14,
         ),
     );
 
@@ -58,6 +68,10 @@ class ComposerStaticInit5bfecc6fb5e853e2f790c7db297fb8ee
         'tree\\' => 
         array (
             0 => __DIR__ . '/..' . '/thinkcmf/cmf-extend/src/tree',
+        ),
+        'think\\worker\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/topthink/think-worker/src',
         ),
         'think\\helper\\' => 
         array (
@@ -99,9 +113,17 @@ class ComposerStaticInit5bfecc6fb5e853e2f790c7db297fb8ee
         array (
             0 => __DIR__ . '/..' . '/thinkcmf/cmf-api/src',
         ),
+        'Workerman\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/workerman/workerman',
+        ),
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
+        ),
+        'GatewayWorker\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/workerman/gateway-worker/src',
         ),
     );
 

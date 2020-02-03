@@ -33,8 +33,12 @@ class WechatController extends RestBaseController
 //        $model = new ActivityModel();
 //        $res = $model->addActivity($data);
         $data['company_id'] = 1;
-        $info = hook('get_coupon_color', $data);
-        $this->success('', $info);
+        $data['type'] = 'img';
+        $data['path'] = CMF_ROOT . 'public' . '/upload/default/20200203/e4e726476816fd23b042aa1652bb92d5.png';
+//        $data['path'] = file_exists(__DIR__ . '/upload/default/20200203/e4e726476816fd23b042aa1652bb92d5.png');
+        $res = hook('upload_material', $data);
+//        $info = hook('create_member_card', $data);
+        $this->success('', ['info' => $res[0]['media_id']]);
     }
 
     public function get_jssdk()
@@ -74,7 +78,7 @@ class WechatController extends RestBaseController
         $params['return_url'] = isset($data['return_url']) && $data['return_url'] ? $data['return_url'] : '';
         $params['user_id'] = isset($data['user_id']) && $data['user_id'] ? $data['user_id'] : 0;
         hook('wechat_config', $params);
-        $this->success('aa');
+        $this->success('aa', $params);
     }
 
     public function oauth_callback()

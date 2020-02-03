@@ -27,7 +27,8 @@
         "thinkcmf/cmf-app": "~5.1.0",
         "thinkcmf/cmf-install": "~5.1.0",
         "thinkcmf/cmf-api": "~5.1.0",
-        "phpoffice/phpexcel": "^1.8"
+        "phpoffice/phpexcel": "^1.8",
+        "topthink/think-worker": "2.0.*"
     },
     "extra": {
         "think-path": "vendor/thinkphp",

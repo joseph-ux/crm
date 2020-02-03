@@ -16,7 +16,7 @@ class CouponController extends AdminBaseController
         $role_id = $role_id ? $role_id : 1;
         $this->assign('role_id', $role_id);
         if ($this->request->isAjax()) {
-
+            
         }
         return $this->fetch();
     }

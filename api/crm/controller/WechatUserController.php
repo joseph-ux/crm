@@ -38,6 +38,55 @@ class WechatUserController extends RestBaseController
         }
     }
 
+    public function edit_user_address()
+    {
+        $data = $this->request->param();
+        $user_id = $this->getWechatUserId();
+        $validate_result = $this->validate($data, 'UserAddress');
+        if ($validate_result !== true) {
+            $this->error($validate_result);
+        }
+        $id = isset($data['id']) && $data['id'] ? intval($data['id']) : 0;
+        $address_info = WechatUserAddressModel::where(['user_id' => $user_id, 'id' => $id])->find();
+        if (empty($address_info)) {
+            $this->error('地址不存在或已被删除');
+        } else {
+            $is_default = isset($data['is_default']) && $data['is_default'] ? $data['is_default'] : 0;
+            if ($is_default == 1) {
+                $list = WechatUserAddressModel::where('user_id', $user_id)->all();
+                if ($list) {
+                    WechatUserAddressModel::where('user_id', $user_id)->update(['is_default' => 0]);
+                }
+            }
+            $address_info->is_default = $is_default;
+            $address_info->province = $data['province'];
+            $address_info->city = $data['city'];
+            $address_info->area = $data['area'];
+            $address_info->address = $data['address'];
+            $address_info->mobile = $data['mobile'];
+            $address_info->name = $data['name'];
+            $res = $address_info->save();
+            if ($res) {
+                $this->success('修改成功');
+            } else {
+                $this->error('修改失败');
+            }
+        }
+    }
+
+    public function get_user_address_detail()
+    {
+        $data = $this->request->param();
+        $user_id = $this->getWechatUserId();
+        $id = isset($data['id']) && $data['id'] ? intval($data['id']) : 0;
+        $address_info = WechatUserAddressModel::where(['user_id' => $user_id, 'id' => $id])->find();
+        if (empty($address_info)) {
+            $this->error('地址不存在或已被删除');
+        } else {
+            $this->success('获取地址详细信息', $address_info);
+        }
+    }
+
     public function set_user_default_address()
     {
         $user_id = $this->getWechatUserId();

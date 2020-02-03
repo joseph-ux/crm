@@ -7,7 +7,6 @@ namespace api\crm\controller;
 use api\crm\model\CartModel;
 use api\crm\model\GoodsModel;
 use api\crm\model\GoodsSpecModel;
-use api\crm\model\OrderInfoModel;
 use cmf\controller\RestBaseController;
 use plugins\wechat\model\WechatUserModel;
 use think\Db;
@@ -164,10 +163,6 @@ class GoodsController extends RestBaseController
             $data = $this->request->param();
             $cart_ids = isset($data['cart_ids']) && $data['cart_ids'] ? $data['cart_ids'] : '';
             $goods_id = isset($data['goods_id']) && $data['goods_id'] ? $data['goods_id'] : '';
-            $user_id = $this->getWechatUserId();
-            $order_price = 0;
-            $real_price = 0;
-            $need_pay_points = 0;
             //购物车
             if ($cart_ids) {
                 $cart_info = CartModel::where('id', 'in', $cart_ids)
@@ -185,19 +180,7 @@ class GoodsController extends RestBaseController
                         throw new Exception('请选择商品规格');
                     }
                 }
-                $real_price = $order_price = $goods_info['price'] * $num;
-                if ($goods_info['buy_type'] >= 1) {
-                    $need_pay_points = $goods_info['points'];
-                }
             }
-            $order_model = new  OrderInfoModel();
-            $order_model->order_sn = 'GOODS_' . cmf_get_order_sn();
-            $order_model->user_id = $user_id;
-            $order_model->order_price = $order_price;
-            $order_model->real_price = $real_price;
-            $order_model->pay_points = $need_pay_points;
-            $order_model->order_status = 0;
-
 
         } catch (Exception $e) {
             Db::rollback();
