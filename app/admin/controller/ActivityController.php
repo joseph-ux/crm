@@ -12,7 +12,6 @@ use cmf\controller\AdminBaseController;
 
 class ActivityController extends AdminBaseController
 {
-    // as
     public function index()
     {
         $admin_id = cmf_get_current_admin_id();
